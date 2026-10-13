@@ -145,13 +145,6 @@ td {
   background: #fecaca;
 }
 
-.notice {
-  background: #dcfce7;
-  color: #166534;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 18px;
-}
 
 .modal-backdrop {
   position: fixed;
@@ -254,3 +247,60 @@ td {
     flex-wrap: wrap;
   }
 }
+
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.filter-row label {
+  font-size: 14px;
+  color: #374151;
+}
+
+.filter-row select {
+  padding: 8px 10px;
+  border: 1px solid #d7dce5;
+  border-radius: 6px;
+  background: white;
+  font: inherit;
+}
+
+th {
+  text-align: center;
+}
+
+td {
+  text-align: left;
+  padding: 14px 10px;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #dcfce7;
+  color: #166534;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.notice-close {
+  border: none;
+  background: transparent;
+  color: #166534;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.notice-close:hover {
+  color: #14532d;
+}
+

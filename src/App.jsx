@@ -24,8 +24,9 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [formError, setFormError] = useState("");
   const [deleteId, setDeleteId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("All");
 
-  // Get subscriptions from the backend
+  
   async function loadSubscriptions() {
     try {
       const response = await fetch(API_URL);
@@ -48,7 +49,7 @@ function App() {
     loadSubscriptions();
   }, []);
 
-  // Update form fields when the user types
+
   function handleChange(event) {
     setForm({
       ...form,
@@ -56,7 +57,7 @@ function App() {
     });
   }
 
-  // Open the form for a new subscription
+  
   function openAddForm() {
     setForm(emptyForm);
     setEditingId(null);
@@ -65,7 +66,7 @@ function App() {
     setShowForm(true);
   }
 
-  // Open the form with existing subscription details
+  
   function handleEdit(subscription) {
     setForm({
       user_email: subscription.user_email,
@@ -82,7 +83,7 @@ function App() {
     setShowForm(true);
   }
 
-  // Add a new subscription or update an existing one
+  
   async function handleSubmit(event) {
     event.preventDefault();
     setFormError("");
@@ -137,7 +138,6 @@ function App() {
     }
   }
 
-  // Delete a subscription after confirmation
   async function handleDelete() {
     try {
       const response = await fetch(`${API_URL}/${deleteId}`, {
@@ -160,18 +160,38 @@ function App() {
     }
   }
 
-  // Calculate the days remaining until the end date
-  function getRemainingDays(endDate) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  
+ 
+function getRemainingDays(endDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const end = new Date(
-      String(endDate).slice(0, 10) + "T00:00:00"
-    );
+  // Use the date part only to avoid timezone issues.
+  const dateText = String(endDate).slice(0, 10);
+  const [year, month, day] = dateText.split("-").map(Number);
 
-    return Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+  const end = new Date(year, month - 1, day);
+  end.setHours(0, 0, 0, 0);
+
+  return Math.round((end - today) / (1000 * 60 * 60 * 24));
+}
+
+function getSubscriptionStatus(subscription) {
+
+  if (subscription.status?.toLowerCase() === "cancelled") {
+    return "Cancelled";
   }
 
+  return getRemainingDays(subscription.end_date) < 0
+    ? "Expired"
+    : "Active";
+}
+
+const filteredSubscriptions = subscriptions.filter((subscription) => {
+  if (statusFilter === "All") return true;
+
+  return getSubscriptionStatus(subscription) === statusFilter;
+});
   return (
     <main className="container">
       <header className="page-header">
@@ -188,10 +208,37 @@ function App() {
         </button>
       </header>
 
-      {message && <p className="notice">{message}</p>}
+      {message && (
+            <div className="notice">
+              <span>{message}</span>
+              <button
+                type="button"
+                className="notice-close"
+                onClick={() => setMessage("")}
+                aria-label="Close notification"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
       <section className="panel">
         <h2>All Subscriptions</h2>
+        
+      <div className="filter-row">
+        <label htmlFor="statusFilter">Filter by Status:</label>
+        <select
+          id="statusFilter"
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="Active">Active</option>
+          <option value="Expired">Expired</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
 
         {loading && <p>Loading subscriptions...</p>}
         {error && <p className="error">{error}</p>}
@@ -217,10 +264,10 @@ function App() {
               </thead>
 
               <tbody>
-                {subscriptions.map((subscription) => {
-                  const days = getRemainingDays(subscription.end_date);
-
-                  return (
+                {filteredSubscriptions.map((subscription) => {
+                 const days = getRemainingDays(subscription.end_date);
+                 const status = getSubscriptionStatus(subscription);
+                 return (
                     <tr key={subscription.subscription_id}>
                       <td>{subscription.user_email}</td>
                       <td>{subscription.plan_name}</td>
@@ -230,17 +277,21 @@ function App() {
                       <td>
                         {String(subscription.end_date).slice(0, 10)}
                       </td>
-                      <td>{days < 0 ? "Expired" : `${days} days`}</td>
+                    
+                    <td>{days < 0 ? "Expired" : `${days} days`}</td>
+
                       <td>
                         ₹{Number(subscription.monthly_cost).toFixed(2)}
                       </td>
-                      <td>
-                        <span
-                          className={`status ${subscription.status.toLowerCase()}`}
-                        >
-                          {subscription.status}
+                    <td>
+                        <span className={`status ${status.toLowerCase()}`}>
+                              {status}
                         </span>
-                      </td>
+                    </td>  
+                          
+                            
+
+                        
                       <td>
                         <div className="action-buttons">
                           <button
